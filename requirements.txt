@@ -1,0 +1,7 @@
+openai
+z3-solver
+instructor
+retry
+
+# dev
+ruff

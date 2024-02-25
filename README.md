@@ -42,10 +42,11 @@ C Mortal(Socrates)
 ## Requirements
 
 * Python 3
-* OpenAI (Set env var OPENAI_API_KEY)
+* OpenAI access
 * Z3 for prover support
 
 ## Setup
+Set env var OPENAI_API_KEY
 
 To use venv:
 ```
@@ -56,7 +57,7 @@ source ./venv/bin/activate
 Install packages
 ```
 pip install -r requrements.txt
-``
+```
 
 ## Running
 

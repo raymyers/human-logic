@@ -2,7 +2,7 @@
 
 > Proof assistant for people who don't know proofs (yet!)
 
-Human Logic is an simple interactive prover supporting First-Order Logic for programmers learning new to Formal Methods.
+Human Logic is an simple interactive prover supporting First-Order Logic for programmers learning Formal Methods.
 
 Runs on the terminal.
 
@@ -42,6 +42,7 @@ C Mortal(Socrates)
 ## Requirements
 
 * Python 3
+* OpenAI (Set env var OPENAI_API_KEY)
 * Z3 for prover support
 
 ## Setup

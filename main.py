@@ -105,7 +105,10 @@ def format_fol(line: LogicLine):
 
 
 class Lang(cmd.Cmd):
-    intro = 'Welcome to the FOL Assistant shell. Type help or ? to list commands.\n'
+    intro = """Welcome to the FOL Assistant shell.
+Using OpenAI key in OPENAI_API_KEY.
+Type help or ? to list commands.
+"""
     prompt = 'FOL> '
     file = None
     lines: list[LogicLineWrapper] = []
@@ -147,24 +150,29 @@ class Lang(cmd.Cmd):
             print(f"ERROR Unknown command `{line}`")
         self.do_list()
         if gen_line.text:
-            print('...')
+            print('Resolving new item...')
             
             gen_line.logic_line = generate_logic_lines(gen_line.text, context_lines)
             if DEBUG:
                 print(gen_line.logic_line.json())
             print()
+            print("# Text")
+            self.do_list("text")
+            print()
+            print("# FOL")
             self.do_list()
         
         print()
         return False
     
-    def do_list(self, _arg=None):
-        'List logic lines as FOL'
+    def do_list(self, format: str="FOL"):
+        """List logic lines as in format (FOL / text, default FOL)"""
+        text_format = format == "text"
         for i, line in enumerate(self.lines):
             num_text = i+1
             if line.is_conclusion:
                 num_text = 'C'
-            if line.logic_line:
+            if line.logic_line and not text_format:
                 print(f"{num_text} " + format_fol(line.logic_line))
             else:
                 print(f"{num_text} " + line.text)

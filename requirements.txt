@@ -2,6 +2,8 @@ openai
 z3-solver
 instructor
 retry
+lark
 
 # dev
 ruff
+pytest

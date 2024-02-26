@@ -8,6 +8,7 @@ from openai import OpenAI, APITimeoutError
 from pydantic import BaseModel, ValidationError
 from retry import retry
 
+from human_logic.fol_solver import check_fol_proof
 
 
 OPENAI_CLIENT = None
@@ -28,20 +29,9 @@ class LogicLine(BaseModel):
     comment: str
     fol: str
 
-class Z3Function(BaseModel):
-    name: str
-    param_types: list[str]
-
-class Z3Line(BaseModel):
-    code: str
-    sorts: list[str]
-    functions: list[Z3Function]
-
-
 class LogicLineWrapper(BaseModel):
     text: str
     logic_line: LogicLine | None
-    z3_line: Z3Line | None
     is_conclusion: bool
 
 class LogicLines(BaseModel):
@@ -50,23 +40,23 @@ class LogicLines(BaseModel):
 def logic_line_prompt(text: str, context_lines: list[LogicLineWrapper]):
     context = "\n".join([line.logic_line.fol for line in context_lines if line.logic_line])
     return f"""
-    ```
-    {text}
-    ```
-    Convert the above into a logic line.
-    A logic line these parts:
-    * comment: text description
-    * fol: First-Order Logic notation, symbols ∀ ¬ ∃ ∧ ∨ → ↔, example:
-        * ∀ x P(x)
-        * ∀ x (Man(x) → Mortal(x))
-        * Mortal(Socrates)
+```
+{text}
+```
+Convert the above into a logic line.
+A logic line these parts:
+* comment: text description
+* fol: First-Order Logic notation, symbols ∀ ¬ ∃ ∧ ∨ → ↔, example:
+    * ∀ x P(x)
+    * ∀ x (Man(x) → Mortal(x))
+    * Mortal(Socrates)
 
-    # Context
-    Be consistent with the names in the previous steps.
-    ```
-    {context}
-    ```
-    """
+# Context
+Be consistent with the names in the previous steps.
+```
+{context}
+```
+"""
 
 @retry((ValidationError, APITimeoutError), tries=3, delay=1)
 def generate_logic_lines(
@@ -177,6 +167,26 @@ Type help or ? to list commands.
             else:
                 print(f"{num_text} " + line.text)
 
+    def do_z3(self, _arg):
+        fol_lines = [
+            line.logic_line.fol
+            for line in self.lines 
+            if line.logic_line and not line.is_conclusion
+        ]
+        conclusion_fol_lines = [
+            line.logic_line.fol
+            for line in self.lines 
+            if line.logic_line and line.is_conclusion
+        ]
+        missing = [line for line in self.lines if not line.logic_line]
+        for line in missing:
+            print(f"WARNING: missing FOL notation for line {line.text}")
+        conclusion = None
+        if conclusion_fol_lines:
+            conclusion = conclusion_fol_lines[0]
+        if len(conclusion_fol_lines) > 1:
+            print(f"WARNING: More than one conclusion line, only checking first")
+        print(check_fol_proof(fol_lines, conclusion))
 
 if __name__ == '__main__':
     init_openai()

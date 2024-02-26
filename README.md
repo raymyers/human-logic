@@ -62,11 +62,13 @@ pip install -r requrements.txt
 ## Running
 
 ```
-python main.py
+python -m human_logic
 ```
 
 ## Checks
 
 ```
 ruff check --fix .
+
+python -m pytest -v
 ```

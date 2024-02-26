@@ -151,7 +151,13 @@ Type help or ? to list commands.
             print()
             print("# FOL")
             self.do_list()
-        
+        if self.lines:
+            valid, reason = self.check_proof()
+            print()
+            if valid:
+                print("Z3 verified")
+            else:
+                print("Z3 failed:", reason)
         print()
         return False
     
@@ -167,7 +173,7 @@ Type help or ? to list commands.
             else:
                 print(f"{num_text} " + line.text)
 
-    def do_z3(self, _arg):
+    def check_proof(self):
         fol_lines = [
             line.logic_line.fol
             for line in self.lines 
@@ -186,7 +192,7 @@ Type help or ? to list commands.
             conclusion = conclusion_fol_lines[0]
         if len(conclusion_fol_lines) > 1:
             print(f"WARNING: More than one conclusion line, only checking first")
-        print(check_fol_proof(fol_lines, conclusion))
+        return check_fol_proof(fol_lines, conclusion)
 
 if __name__ == '__main__':
     init_openai()

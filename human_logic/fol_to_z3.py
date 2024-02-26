@@ -197,12 +197,14 @@ def parse_fol(text):
 
 def fol_to_z3(fol_lines: list[str], conclusion: str | None = None):
     expr_nodes = [parse_fol(line) for line in fol_lines]
+    assertion_z3_lines = [z3_assert_wrap(node.z3()) for node in expr_nodes]
     conclusion_z3 = ""
     if conclusion:
         conclusion_expr_node = parse_fol(conclusion)
+        expr_nodes += [conclusion_expr_node]
         conclusion_z3 = z3_assert_not_wrap(conclusion_expr_node.z3())
     return Z3Proof(
         declarations=decl_z3_lines(expr_nodes),
-        assertions=[z3_assert_wrap(node.z3()) for node in expr_nodes],
+        assertions=assertion_z3_lines,
         conclusion=conclusion_z3
     )

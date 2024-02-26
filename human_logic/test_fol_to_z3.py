@@ -18,6 +18,7 @@ def test_decl_z3_lines_declares_functions_only_once():
         '(declare-fun Mortal (Obj) Bool)'
     ]
 
+
 def test_constant_extraction():
     node = parse_fol("Man(Socrates)")
     print(node)

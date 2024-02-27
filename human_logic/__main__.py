@@ -51,6 +51,8 @@ A logic line these parts:
     * ∀ x (Man(x) → Mortal(x))
     * Mortal(Socrates)
 
+In our notation ∀ and ∃ can only take on variable, so `∀ A, B` becomes `∀ A ∀ B`.
+
 # Context
 Be consistent with the names in the previous steps.
 ```
@@ -102,6 +104,7 @@ Type help or ? to list commands.
     prompt = 'FOL> '
     file = None
     lines: list[LogicLineWrapper] = []
+    z3_code = ""
     def do_q(self, arg):
         'Quit: q'
         print('Exiting')
@@ -112,6 +115,7 @@ Type help or ? to list commands.
             print()
             return True
         match = re.match(r'^([cC])?(\d+)?\b(.*)', line)
+        gen_line = None
         if match:
             is_conclusion, number, text = match.groups()
             is_conclusion = bool(is_conclusion)
@@ -139,7 +143,7 @@ Type help or ? to list commands.
         else:
             print(f"ERROR Unknown command `{line}`")
         self.do_list()
-        if gen_line.text:
+        if gen_line and gen_line.text:
             print('Resolving new item...')
             
             gen_line.logic_line = generate_logic_lines(gen_line.text, context_lines)
@@ -152,15 +156,18 @@ Type help or ? to list commands.
             print("# FOL")
             self.do_list()
         if self.lines:
-            valid, reason = self.check_proof()
+            valid, reason, z3_code = self.check_proof()
+            self.z3_code = z3_code
             print()
             if valid:
                 print("Z3 verified")
             else:
                 print("Z3 failed:", reason)
+                print("Show code with `z`")
         print()
         return False
-    
+    def do_z(self, _arg):
+        print(self.z3_code)
     def do_list(self, format: str="FOL"):
         """List logic lines as in format (FOL / text, default FOL)"""
         text_format = format == "text"
@@ -191,7 +198,7 @@ Type help or ? to list commands.
         if conclusion_fol_lines:
             conclusion = conclusion_fol_lines[0]
         if len(conclusion_fol_lines) > 1:
-            print(f"WARNING: More than one conclusion line, only checking first")
+            print("WARNING: More than one conclusion line, only checking first")
         return check_fol_proof(fol_lines, conclusion)
 
 if __name__ == '__main__':

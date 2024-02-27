@@ -41,9 +41,9 @@ C Mortal(Socrates)
 
 ## Requirements
 
-* Python 3
+* Python 3.10+
 * OpenAI access
-* Z3 for prover support
+* Z3 version 3+ (tested on 4.12.4)
 
 ## Setup
 Set env var OPENAI_API_KEY

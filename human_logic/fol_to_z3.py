@@ -1,4 +1,5 @@
 from lark import Lark, Transformer
+from lark.exceptions import UnexpectedInput
 from dataclasses import dataclass
 
 fol_parser = Lark('''start: statement
@@ -18,6 +19,9 @@ fol_parser = Lark('''start: statement
          ''')
 class MyTransformer(Transformer):
     def id(self, items):
+        if isinstance(items[0], IdNode):
+            # Unclear why this would happen, but the double forall does it.
+            return items[0]
         return IdNode(items[0].value)
     def start(self, items):
         return items[0]
@@ -28,7 +32,9 @@ class MyTransformer(Transformer):
     def group(self, items):
         return GroupNode(items[0])
     def pred(self, items):
-        return PredNode(items[0], items[1:])
+        # When there are no args, it comes back as a single None
+        args = [item for item in items[1:] if item is not None]
+        return PredNode(items[0], args)
     def not_(self, items):
         return NotNode(items[0])
     def and_(self, items):
@@ -115,6 +121,7 @@ class PredNode(ExprNode):
     id: IdNode
     args: list[ExprNode]
     def z3(self):
+        # print(self)
         return f'({self.id.z3()} {" ".join([arg.z3() for arg in self.args])})'
 
 @dataclass
@@ -167,7 +174,9 @@ class Z3Proof:
     def assertions_z3(self):
         return "\n".join(self.assertions)
     def conclusion_z3(self):
-        return self.conclusion
+        return f"; Negated conclusion\n{self.conclusion}" or ""
+    def all_z3(self):
+        return "\n".join(self.declarations + self.assertions + [self.conclusion_z3()])
 
 def decl_z3_lines(nodes: ExprNode):
     function_declaration_collector = FunctionDeclarationCollector()
@@ -190,10 +199,11 @@ def z3_assert_not_wrap(code: str):
     return f"(assert\n  (not {code}))"
 
 def parse_fol(text):
-    tree = fol_parser.parse(text)
-    # print(tree)
-    # print()
-    return MyTransformer().transform(tree)
+    try:
+        tree = fol_parser.parse(text)
+        return MyTransformer().transform(tree)
+    except UnexpectedInput as e:
+        raise Exception(f"Parse error\n{e.get_context(text)}")
 
 def fol_to_z3(fol_lines: list[str], conclusion: str | None = None):
     expr_nodes = [parse_fol(line) for line in fol_lines]

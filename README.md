@@ -5,6 +5,14 @@
 Human Logic is an simple interactive prover supporting First-Order Logic for programmers learning Formal Methods.
 
 Runs on the terminal.
+## Usage
+
+Enter propositions in English (or other LLM recognized language). Optionally, use a prefix.
+* No prefix = Append to the end as a proposition
+* Prefix C = Append to the end conclusion 
+* Number prefix = Add/overwrite the numbered line
+
+Statements will be converted to First-Order Logic notation, then into Z3 for verification. 
 
 ## Example: First Cause
 

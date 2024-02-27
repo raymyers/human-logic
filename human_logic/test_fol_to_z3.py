@@ -39,3 +39,5 @@ def test_decl_z3_lines_declares_constant():
 def test_parse_double_forall():
     node = parse_fol("∀ A ∀ B (Cause(A, B) → (¬A → ¬B))")
 
+    assert node
+
